@@ -47,9 +47,9 @@
         index_2 (map second zippedTuples)
         sum1 (apply + index_1)
         sum2 (apply + index_2)
-        sum1sq (apply + (map #(math/expt % 2) sum1))
-        sum2sq (apply + (map #(math/expt % 2) sum2))
-        psum (* index_1 index_2)
+        sum1sq (apply + (map #(math/expt % 2) index_1))
+        sum2sq (apply + (map #(math/expt % 2) index_2))
+        psum (apply + (map * index_1 index_2))
         num (- psum (/ (* sum1 sum2) (count index_1)))
         den_1 (- sum1sq (/ (math/expt sum1 2) (count index_1)))
         den_2 (- sum2sq (/ (math/expt sum2 2) (count index_1)))
@@ -67,7 +67,7 @@
         person1_filtered (vals  (select-keys person1_ common))
         person2_filtered (vals (select-keys person2_ common))
         input (map vector person1_filtered person2_filtered)]
-    (metric-one input)
+    (metric input)
     ))
 
 
@@ -77,4 +77,3 @@
   "I don't do a whole lot."
   [x]
   (println x "Hello, World!"))
-
