@@ -7,13 +7,13 @@
 (defonce movies ["Lady in the Water","Snakes on a Plane", "Just My Luck",
                  "Superman Returns", "You, Me and Dupree", "The Night Listener"])
 
-(defonce critics {"Lisa Rose" [2.5 3.5 3.0 3.5 2.5 3.0]
-                  "Gene Seymour" [3.0 3.5 1.5 5.0 3.0 3.5]
+(defonce critics {"Lisa Rose"    [2.5 3.5 3.0 3.5 2.5 3.0]
+                  "Gene Seymour" [3.0 3.5 1.5 5.0 3.5 3.0]
                   "Michael Phillips" [2.5 3.0 nil 3.0 3.5 nil]
-                  "Claudia Puig" [nil 3.5 3.0 4.5 4.0 2.5]
-                  "Mike LaSalle" [3.0 4.0 2.0 3.0 3.0 2.0 3.0]
+                  "Claudia Puig" [nil 3.5 3.0 4.0 2.5 4.5]
+                  "Mike LaSalle" [3.0 4.0 2.0 3.0 2.0 3.0]
                   "Jack Matthews" [3.0 4.0 nil 5.0 3.5 3.0]
-                  "Toby" [nil 4.5 nil 4.0 3.5 nil]
+                  "Toby" [nil 4.5 nil 4.0 1.0 nil]
                   })
 
 ;; todo: refactor this
@@ -25,9 +25,6 @@
                 (map #(-> [(first %) (clean (zipmap movies (second %)))]))
                 (into {}))))
 
-
-(defn euclidean-distance [a b]
-  (math/sqrt (+ (math/expt a 2) (math/expt b 2))))
 
 (defn map-keys-intersection [map1 map2]
   (let [map1_ (set (keys map1))
@@ -58,20 +55,44 @@
     (cond
       (= den 0 ) 0)
       :else (/ num den)
-    ))
+      ))
 
-(defn sim-distance [data person1 person2 metric]
+(defn manhattan-distance [tupleList]
+  (->> tupleList
+       (map #(math/abs (- (first %) (second %))))
+       (apply + )))
+
+(defn sim-distance
+  [data person1 person2 & {:keys [metric] :or {metric pearson-score}}]
   (let [person1_ (data person1)
         person2_ (data person2)
         common (map-keys-intersection person1_ person2_)
         person1_filtered (vals  (select-keys person1_ common))
-        person2_filtered (vals (select-keys person2_ common))
+        person2_filtered (vals  (select-keys person2_ common))
         input (map vector person1_filtered person2_filtered)]
-    (metric input)
+       (metric input)
     ))
 
+(defn jaccard-similarity
+  [tupleList]
+  (let [minStuff (map #(apply min %) tupleList)
+        maxStuff (map #(apply max %) tupleList)]
+     (/ (apply + minStuff) (apply + maxStuff))
+    ))
 
-(println (sim-distance data "Lisa Rose" "Gene Seymour" pearson-score))
+(defn topMatches
+  [prefs person & {:keys [n similarity] :or {n 5 similarity sim-distance}}]
+  (let [ rest (set/difference (set (keys prefs)) #{person}) ]
+    (->> rest
+         (map #(->[%,(similarity prefs % person :metric jaccard-similarity)]))
+         (into {})
+         (sort-by val >)
+         (take n)
+    )))
+
+
+;;(println (sim-distance data "Lisa Rose" "Gene Seymour"))
+(println (topMatches data "Toby"))
 
 (defn foo
   "I don't do a whole lot."
