@@ -88,4 +88,3 @@
         (apply utility/map-intersection / )
         (sort-by val >))))
 
-(println (get-recommendations data-for-reviewer-recommendation (keys critics) "Just My Luck" :similarity similarity-euclidean))
